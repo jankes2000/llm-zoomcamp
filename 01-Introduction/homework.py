@@ -1,5 +1,6 @@
 import json
 import requests 
+import tiktoken
 from elasticsearch import Elasticsearch
 from tqdm.auto import tqdm
 
@@ -125,6 +126,11 @@ query = 'How do I execute a command in a running docker container?'
 #     print(result)
 prompt = rag_only_prompt(query, 3)
 
-print(len(prompt))
-print()
-print(prompt)
+#print(len(prompt))
+#print()
+#print(prompt)
+
+#encoding = tiktoken.encoding_for_model("cl100k_base")
+encoding = tiktoken.get_encoding("cl100k_base")
+
+encoded_prompt = encoding.encode(prompt)
