@@ -1,9 +1,11 @@
+import json
 import requests 
 from elasticsearch import Elasticsearch
 from tqdm.auto import tqdm
 
 
-def elastic_search(query):
+
+def elastic_search(query, result_count):
     search_query = {
         "size": 5,
         "query": {
@@ -15,25 +17,59 @@ def elastic_search(query):
                         "type": "best_fields"
                     }
                 }
-                # ,
-                # "filter": {
-                #     "term": {
-                #         "course": "data-engineering-zoomcamp"
-                #     }
-                # }
+                ,
+                "filter": {
+                    "term": {
+                        "course": "machine-learning-zoomcamp"
+                    }
+                }
             }
         }
     }
 
     response = es_client.search(index=index_name, body=search_query)
     
-    # result_docs = []
+    result_docs = []
     
-    # for hit in response['hits']['hits']:
-    #     result_docs.append(hit['_source'])
+    for hit in response['hits']['hits'][:result_count]:
+        result_docs.append(hit['_source'])
     
-    return response
+    return result_docs
 
+def rag_only_prompt(query, result_count):
+    search_results = elastic_search(query, result_count)
+    prompt = build_prompt(query, search_results)
+    #answer = llm(prompt)
+
+
+    return prompt
+
+def build_prompt(query, search_results):
+    prompt_template = """
+You're a course teaching assistant. Answer the QUESTION based on the CONTEXT from the FAQ database.
+Use only the facts from the CONTEXT when answering the QUESTION.
+
+QUESTION: {question}
+
+CONTEXT: 
+{context}
+""".strip()
+
+    context = ""
+    
+    for doc in search_results:
+        context = context + f"Q: {doc['question']}\nA: {doc['text']}\n\n"
+    
+    prompt = prompt_template.format(question=query, context=context).strip()
+    return prompt
+
+def llm(prompt):
+    response = client.chat.completions.create(
+        model='gpt-4o',
+        messages=[{"role": "user", "content": prompt}]
+    )
+    
+    return response.choices[0].message.content
 
 
 docs_url = 'https://github.com/DataTalksClub/llm-zoomcamp/blob/main/01-intro/documents.json?raw=1'
@@ -78,6 +114,17 @@ es_client.index(index=index_name, document=doc)
 
 query = 'How do I execute a command in a running docker container?'
 
-results = elastic_search(query)
+# results = elastic_search(query)
 
-print(results)
+# #print(json.dumps(results))
+
+# #print(results)
+
+# for result in results:
+#     print()
+#     print(result)
+prompt = rag_only_prompt(query, 3)
+
+print(len(prompt))
+print()
+print(prompt)
