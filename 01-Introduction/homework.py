@@ -130,7 +130,9 @@ prompt = rag_only_prompt(query, 3)
 #print()
 #print(prompt)
 
-#encoding = tiktoken.encoding_for_model("cl100k_base")
-encoding = tiktoken.get_encoding("cl100k_base")
+encoding = tiktoken.encoding_for_model("gpt-4o")
+#encoding = tiktoken.get_encoding("o200k_base")
 
 encoded_prompt = encoding.encode(prompt)
+
+print(encoding.decode_single_token_bytes(91022))
