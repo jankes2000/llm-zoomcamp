@@ -43,6 +43,7 @@ def hit_rate(search_engine, ground_truth, num_results=5):
 
 def elasticsearch_search(es, index_name, query_vector, num_results=5):
     search_query = {
+        "track_total_hits": True,
         "size": num_results,
         "query": {
             "script_score": {
@@ -212,5 +213,5 @@ print(f"The ID of the document with the highest score is: {top_doc_id}")
 
 results = elasticsearch_search(es, index_name, result_vector, num_results=5)
 index_name = "qa_embeddings"
-#hr_elastic = hit_rate_elasticsearch(es, index_name, embedding_model, ground_truth, num_results=5)
+hr_elastic = hit_rate_elasticsearch(es, index_name, embedding_model, ground_truth, num_results=5)
 print(f"Hit-rate for Elasticsearch: {hr_elastic:.2f}")
